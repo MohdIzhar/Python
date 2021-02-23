@@ -1,0 +1,187 @@
++--------------------------------------------------+
+| Managing Python Packages and Virtual Environment |
++--------------------------------------------------+
+
+Pip -   Package Management
+Virtual Environment - Project and Dependencies
+Virtualenvwrapper   - Making venv more convenient
+Other tools...
+
++-----+
+| PIP |
++-----+
+
+Python Package manager.
+> pip -V          # to get pip version
+
+You need separate pip for different version of Python.
+
++===============+
+| Best Practice | 
++===============+
+
+Always work inside a Virtual Environment
+
+> pip3 list -  to list all the installed Packages
+
+> pip3 install <Package name>   - to install Packages and it will install Dependencies also.
+
+Never you use pip as the above cmd always use in virtual environment.
+
+> pip3 uninstall <Package name> - to uninstall the Package but Note: this doesn't uninstall the Dependencies.
+
+> pip help  - to get the help of cmds
+> pip help install  - to get help of cmd install
+
+> pip3 list -o      - to get the installed version and latest version available for the installed Packages
+
+Directly installing Packages may interfere with the system Dependencies or application installed and will effect system performance.
+
+> pip show six  - shows the compatibility version
+
+-: Best way to use PIP :-
+   ===================
+> python<version> -m pip install <Packages>
+
+
++---------------------+
+| Virtual Environment |
++---------------------+
+
+It is an isolated context we can install python Packages so that they cant interfere with Dependencies for Other Projects
+or any system-wide Packages install.
+
+Now always use virtual environment and dont install global.
+
+> python3.6 -m pip install virtualenv 
+> virtualenv --version
+
+Lets work with virtualenv:
+   create a folder separate virtualenv.
+   > mkdir virtualenvs
+   > cd virtualenvs
+   > virtualenv <any project folder name>
+   It will create a folder that includes multiple subfolder.
+   bin   - executable files
+   include  -
+   lib   -  this will hold installed Packages
+   local -
+
+=> to install specific version of python
+
+> virtualenv -p <python version> <folder name> 
+
+# after installing lets activate the environment.
+
+> . rates/bin/activate
+
+Dot means in project folder in bin activate is there
+Now within virtual environment the python interpreter refer from inside.
+> python --version         # you will get single version output
+> pip -V
+> python -m pip list       # you will get shorlist now
+> python -m pip install requests
+
+> python get_rates.py
+> python -m pip list
+> python -m pip show requests    # will show the installed location path
+
+> deactivate            # to exit the virtual environment
+> python --version      # now it will point to the default python interpreter
+
+=================================
+
+# For python version >= 3.3:
+
+we have a inbuilt module called venv to create virtual environment.
+
+> python -m venv <project name>
+
+=================================
+
++-------------------------------------------+
+| Managing Packages and Virtual Environment |
++-------------------------------------------+
+
+create a file with new pgm as box_rate.py
+
+Now install the imported module Package.
+
+> python -m pip install python-box
+> python box_rate.py                # running the file
+
+# Now assume In my team we are working with multiple peoples How can they know to use the same version.
+To do so that they may have same version use this:
+
+> python -m pip freeze        # shows the installed version Packages
+> python -m pip freeze > requirements.txt       # storing the installed Packages with version.
+
+Now to installed the Packages listed in requirements.txt
+
+> python -m pip install -r requirements.txt
+
+
+===== Note =====
+Keep your virtual environment separate from your project
+=================
+
+> python -m pip install 'flask==0.9'
+> python -m pip install 'Django>=0.9'
+> python -m pip install -U <Package name>     # to upgrade
+
+Note:- When we installed Packages using pip it run a file called 
+       setup.py
+
+> python -m pip install -e <flask>             # refers to locally
+                              |
+                              +------> directory caontaining setup.py file
+
+=======================================================================================
+
++-------------------+
+| Virtualenvwrapper |
++-------------------+
+
+1) User-friendly wrapper around virtualenv
+2) Easy creation and activation
+3) Bind Project to virtualenv
+4) Great with large number of projects.
+
+Demo:
+
+   > pip install virtualenvwrapper
+   > setup your porject location in .bashrc
+      source ~/.local/bin/virtualenvwrapper.sh
+      Optional => export WORKON_HOME=/home/mohdizhar/Desktop/PYTHON/Virtual-ENV
+      Needed for mkproject => export PROJECT_HOME=/home/mohdizhar/Desktop/PYTHON
+
+   > workon                      # switching project directory
+   > mkproject <project name>    # to create project and enter into virtual environment
+   > mkvirtualenv                # to create new virtual environment
+   > rmvirtualenv                # to remove virtual environment
+
+====================================================
+
++-------------------+
+| Pipenv and Poetry |
++-------------------+
+
+These are non standard now but future is uncertain.
+
+> pip install pipenv 
+Will install in pwd path of install cmd
+
+> pipenv install requests  python-box
+
+This cmd does mulitple things create a virtual environment and much more.
+
+Look at Pipfile
+> cat Pipfile
+
+> pipenv run python <file.py>          # to get into virtual environment
+> exit                                # to come out of virtual environment
+
+================================
+
+Poertry - refer to documentations
+

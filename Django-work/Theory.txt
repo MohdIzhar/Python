@@ -1,0 +1,744 @@
+Python web framework
+Helps in quickly building of websites
+Automatically manages SQL queries so we dont need too write them
+Provides template and url mapping
+
+-> pip3 install django
+-> to create django project :- django-admin startproject meeting_planner
+-> to run server :- python3.6 manage.py runserver
+
+# asgi file wsgi file are used to deploy in production server.
+# urls.py files define the  webpages that are stored.
+# settings.py and urls.py are the backbone of web app
+
+# Note:- Dont use django development server in production.
+
+# github url:- https://github.com/codesensei-courses/django-getting-started
+
+# go to project directory meeting_planner and create an app i.e. website pages.
+-> python manage.py startapp <websites>  [python3.6 manage.py startapp website]
+                                |
+                                +---> anyname you want to give 
+
+# goto website folder you will see multiple files remove all files and migration folder except __init__ and views.py
+__init__ file is for package file
+views.py is a file where we will write code 
+
+Before we begin we must ensure that the code is seen and run by django. To do this goto settings.py file
+settings.py --> lookfor INSTALLED_APPS section and add the app name i.e. 'website' in our case
+Now our app is part of our project.
+
+Now goto view.py of app file:-
+
+Note:- view is django component that handles the request of a webpage 
+
+we are going to write a code like this:
+        from django.http import HttpResponse
+
+        def welcome(request):
+            return HttpResponse("Welcome to the Meeting Planner!")
+
+Now to view our page we need to assign the url:
+goto urls.py file and add the following code:
+            from website.views import welcome
+
+            path('welcome.html', welcome)       # add this in urlpatterns
+                        |           |
+                        |           +--> view function
+                        +--> first argument is url
+This means that when user want to visit the welcome.html page, we want it to be handled by view function.
+
+Lets add some more code and look deeper in knowledge:
+
+from datetime import datetime
+
+def date(request):
+    return HttpResponse("This page serverd at " + str(datetime.now()))
+
+add the urls
+path('welcome.html', welcome),
+path('date.html', date)
+
+-> note: if you want the default page use empty string in path('',welcome)
+
+
+Data Model:-
+----------
+
+Models are Python classes that are mapped to database tables.
+Each object is a row in the table.
+
+Migrations are Python scripts that keeps db structure in sync with code.
+When code becomes large we need to then write our own migration code.
+
+Lets do some hands on:
+    If you remember when we run our server redcolour info comes up that actually is missing migration that need to setup
+
+    > python3.6 manage.py showmigrations
+
+    Each line in above output shows some changes to database.
+    Mostly they are about creating the correct table structure.
+
+    To solve this run:
+
+    > python3.6 manage.py migrate
+    
+    To check the above cmd run successfully connect to database shell :
+    
+    > python3.6 manage.py dbshell
+
+    This will give you the sqlite shell and check the tables that were created.
+
+    sqlite> .tables
+    auth_group                  auth_user_user_permissions
+    auth_group_permissions      django_admin_log          
+    auth_permission             django_content_type       
+    auth_user                   django_migrations         
+    auth_user_groups            django_session 
+
+    Note: Mostly names start with auth or django, Most of the time it is for the app it belongs to <name of the app>
+    Auth app Provides for users, group, permission.
+
+     sqlite> select * from django_migrations;
+
+Lets create a new app <meeting> and add entries to the settings file about app:
+    remove the files in meetings folder:
+        apps.py     --> this file is for advance app configurations
+        tests.py    --> file for writing unit tests
+
+    Now open models.py file for handling database:
+        Note: when you write a class it is necessary to inherit the models.Model base class
+
+        class Meeting(models.Model):
+            title = models.CharField(max_length=200)
+            date = models.DateField()                   # after . function specifies the type fo data we want to store.
+
+        Now we have define our some models lets apply it in out application
+
+        > python3.6 manage.py makemigrations
+            Migrations for 'meetings':
+            meetings/migrations/0001_initial.py
+                - Create model Meeting
+
+        This cmd will check for models and determine what changes we need to do the database in order to make the database to match our model code.
+        Since, we dont have Meeting table in our database it will create then.
+        This will run if our APP is in settings.py INSTALLED_APPS else it will not run the migration.
+
+        meetings/migrations/0001_initial.py         --> this path shows the our meeting table in migration folder of meeting
+        Open the file you will see some code generated by  python3 for database.
+        The code is not in SQL because migration is independent from the actual back-end.
+
+        Lets run this file:                            +---> migration name
+                                                       |                         
+        > python3.6 manage.py sqlmigrate meetings 0001_initial
+        
+        BEGIN;
+        --
+        -- Create model Meeting
+        --
+        CREATE TABLE "meetings_meeting" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "title" varchar(200) NOT NULL, "date" date NOT NULL);
+        COMMIT;
+
+        Notice this cmd generated the sql query and now run the following cmd to create the table
+        > python3.6 manage.py migrate
+
+        Operations to perform:
+        Apply all migrations: admin, auth, contenttypes, meetings, sessions
+        Running migrations:
+        Applying meetings.0001_initial... OK
+
+        # to check goto dbshell
+        > python3.6 manage.py dbshell
+        sqlite> .tables                 # you will see meeting table.
+        # you will also notice that table is prefix with app name
+
+Admin interface:
+---------------
+
+settings.py already have some admin INSTALLED_APPS and also urls.py
+
+Lets add admin to meeting app: goto admin.py of meeting
+
+Now register model in this file.
+
+from .models import Meeting
+
+# Register your models here.
+admin.site.register(Meeting)
+
+Now run the server:-
+python3.6 manage.py runserver
+
+http://127.0.0.1:8000/admin
+
+you will admin interface but login we need to create user.
+stop the server and lets create the user.
+
+> python3.6 manage.py createsuperuser
+enter admin username and password
+Me:
+    admin
+    admin@1
+
+Now login into browser and you will see the registered Model Meeting.
+Click on the meeting to add some meeting.
+after adding you will see meeting object with unique id and it doesnt looks good so far and our user interface
+will never look like this.
+
+So lets make userinterface friendly.
+
+Note django supports other databases:
+    PostgreSQL, MySQL, MariaDB, Oracle, SQLite 
+    We can store data using third party libraries
+
++======================+
+| Migrations Workflows |
++======================+
+
+# Important: Make sure app is in INSTALLED_APPS
+Step 1: change model code
+Step 2: generate migration script   > python3.6 manage.py makemigrations
+Step 3: [optional] show migration   > python3.6 manage.py showmigrations
+Step 4: Run Migrations              > python3.6 manage.py migrate
+
+
+To Register models - just import app models and import class
+
+from .models import Meeting
+
+admin.site.register(Meeting)
+
+Adding more code now this time we will add foreign key.
+------------------------------------------------------
+
+Lets open models.py: and add two more fields.
+
+    start_time = models.TimeField()
+    duration = models.IntegerField()
+
+> python3.6 manage.py makemigrations
+
+when you run this it will ask you for some default options because we already have some data previously in database
+now we have added more fields which can't be empty so the django is askig how to solve it using default value.
+
+lets solve this:
+In models.py import datetime module
+
+from datetime import time
+
+    start_time = models.TimeField(default=time(9))
+    duration = models.IntegerField(default=1)
+
+> python3.6 manage.py makemigrations
+> python3.6 manage.py migrate
+
+lets add __str__ method that will return time and date
+
+  def __str__(self) -> str:
+        return f"{self.title} at {self.start_time} on {self.date}"
+
+now runserver again and you will see the different output
+
+Now Click on add meeting you will see four fields.
+
+Adding Second model class.
+    # Add a model class called Room
+    # To represent meeting Room
+    # A room has a name, floor number, and a room number.
+
+
+class Room(models.Model):
+    room_name = models.CharField(max_length=100)
+    floor_number = models.IntegerField(default=0)
+    room_number = models.IntegerField(default=0)
+
+    def __str__(self) -> str:
+        return f"Meeting in {self.room_name} floor number {self.floor_number} room number {self.room_number}"
+
+now register model in admin.py.
+And makemigrations, migrate.
+
+now run server.
+
+
+class Meeting(models.Model):
+    title = models.CharField(max_length=200)
+    date = models.DateField()
+    start_time = models.TimeField(default=time(9))
+    duration = models.IntegerField(default=1)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+
+    # CASCADE means when a meeting is deleted all its room should also be deleted.
+
+    def __str__(self) -> str:
+        return f"{self.title} at {self.start_time} on {self.date}"
+
+This code is to add ForeignKey in another class.
+
+Now if you run the server it will again ask you for default options
+to avoid this lets delete all of our previously migrated files.
+and also deleted db.sqlite file to get clean database
+Dont delete __init__ file.
+
+python3.6 manage.py makemigrations
+
+python3.6 manage.py migrate
+
+python3.6 manage.py createsuperuser
+
+python3.6 manage.py runserver
+
+---------------------------------------------------------------------
+
+#######################
+# MODEL-TEMPLATE-VIEW #
+#######################
+
+Lets check our website app view.py file
+
+You will see that if we use HTML syntax for our application.
+The code becomes complex and not readable.
+To keep our python code neat and clean we will create a folder name template that helps us to keep html code there.
+
+But python have default location for template, but for this we need to make this ourselves in website folder.
+
+mkdir website/templates             # dont forget the s else it will not work 
+
+Note: its not good practice to keep the files directly to templates folder.
+      rather create another folder inside templates folder with name of app.
+    mkdir website/templates/website         # we do this to avoid name clashes
+
+    Now in this location create a html file.
+    touch website/templates/website/welcome.html
+
+    <!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>DJANGO PROJECT</title>
+    </head>
+    <body>
+        <h1>Welcome to the Meeting Planner!</h1>
+        <p>
+            This is the demo application for the course
+            <em>Django: Getting Started</em>
+            on <a href="https://www.pluralsight.com">Pluralsight</a>
+        </p>
+    </body>
+</html>
+
+Add this code in html file.
+
+Now we want this page to be used in view function.
+Lets do it: instead returning text, now we will return the html template html file.
+
+In views.py file: 
+
+def welcome(request):
+    return render(request, "website/welcome.html")
+
+In render function request object other type of data like cookies, HTTP request, etc.
+But right now I want to just redirect to the app location.
+When the request is made the function will look for template folder and then use the path specifies in render to show our page
+
+Now run the server: you will see the our welcome page.
+
+Lets introduce template variable:-
+--------------------------------
+
+<p>
+    {{message}}
+</p>
+
+Add this code in html file
+this will executed when the template is rendered.
+
+def welcome(request):
+    return render(request, "website/welcome.html", {"message": "This data is sent from the view to the template."})
+
+--------------------------------------
+
+=> Combining Model-View-Template 
+
+from meetings.models import Meeting
+
+def welcome(request):
+    return render(request, "website/welcome.html", {"num_meetings": Meeting.objects.count()})
+
+Every models has an object that interact with the database.
+
+<p>
+    There are currently {{num_meetings}} meetings in the database
+</p>
+
+
+Now lets render some details about the meeting.
+Goto meetings/views.py and add the following code:
+
+from .models import Meeting
+
+# Create your views here.
+
+def detail(request, id):
+    meeting = Meeting.objects.get(pk=id)
+    return render(request, "meetings/detail.html", {"meeting": meeting})
+
+now add entry to urls.py 
+
+from meetings.views import detail
+
+path('meetings/<int:id', detail),
+                  |
+                  +----> passing this as an argument to view function detail.
+                  
+>> create templates folder and meeting/detail.html 
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Meeting: {{meeting.title}}</title>
+    </head>
+    <body>
+        <h1>{{meeting.title}}</h1>
+        <p>
+            This meetings is scheduled on {{meeting.date}}
+            {{meeting.start_time}} in <strong> {{meeting.room}}</strong>
+        </p>        
+    </body>
+</html>
+
+
+
+http://127.0.0.1:8000/meetings/3
+
+# Returning 404 Error when id doesnt exist
+
+to handle this you can use try-catch block
+but in django we have another utility to do so.
+
+in views.py
+
+from django.shortcuts import render, get_object_or_404
+
+meeting = Meeting.objects.get(pk=id) replace this with 
+meeting = get_object_or_404(Meeting, pk=id)
+
+
+-> Model classes have a .objects attribute That allow you to retrieve data
+
+meeting.object.all()
+meeting.object.count()
+meeting.object.get(pk=5)
+
+
++-------------------------------+
+| URL Mappings and Link Binding |
++-------------------------------+
+
+Navigating from home page to different links.
+
+Now goto website views.py and changes the return function of welcome page as below:
+
+def welcome(request):
+    return render(request, "website/welcome.html", {"meetings": Meeting.objects.all()})
+
+Now in welcome.html remove this code:
+
+<p>
+    There are currently {{num_meetings}} meetings in the database
+</p>
+
+Now add the new code as below:-
+
+ <h2>Meetings</h2>
+        <ul>
+            {% for meeting in meetings %}
+            <li>
+                <a href="/meetings/{{ meeting.id }}">
+                {{ meeting.title }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+
+Note we have hardcoded the url mapping in html tag, so if the url in url mapping changes i.e url in urls.py 
+we need to change the whole code where we used hardcoded urls, so this is not good. Inorder to solve this we another way of mapping url in django.
+
+{% url 'detail' meeting.id%} --> use this instead "/meetings/{{ meeting.id }}"
+
+replace this in code and check server.
+
+python3.6 manage.py runserver
+
+Unfortuanetly you will get no reverse match Error.
+This is because we haven't given the url a name yet, so to do that, lets goto
+urls.py and give it a name:
+        path('meetings/<int:id>', detail, name="detail")
+
+------ A task for you -----------
+
+In detail.html add Home link using {% url %}
+
+<a href="{% url 'welcome' %}">
+    Home
+</a>
+
+And map the name in urls.py welcome path.
+
+Now and check your server.
+
+This is called Link Binding.
+
+    +-------------------------------------------+
+    | Lets create a page Combining all together |
+    +-------------------------------------------+
+
+# add a page that shows a list of all room objects
+
+Create several room using admin interface.
+
+The idea is to create a page that shows this data to user.
+
+Create a:
+    - view
+    - template
+    - url mapping
+
+In meetings views.py:
+def room_list(request):
+    return render(request, "meetings/rooms_list.html", {"rooms": Room.objects.all()})
+
+Now create a room_list.html in meeting template folder.
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Rooms</title>
+    </head>
+    <body>
+        <h2>Rooms</h2>
+        <ul>
+            {% for room in rooms %}
+            <li>
+                {{room}}
+            </li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>
+
+
+Now view is added lets add the url in urls.py
+
+path('rooms', room_list, name="rooms"),
+
+now reload server and search http:.../rooms
+
+Now add a link to welcome page
+Add this code in welcome.html
+
+<a href="{% url 'rooms' %}">Rooms List</a>
+
+------------------
+Best practice to manage and handle urls of particular app is to keep them in their own urls.py
+
+create a file urls.py in meeting folder
+And add this following code:
+
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('<int:id>', views.detail, name="detail"),
+    path('rooms', views.room_list, name="rooms"),
+]
+
+Now remove these paths from original urls.py
+
+from meetings.views import detail, room_list
+
+path('meetings/<int:id>', detail, name="detail"),
+path('rooms', room_list, name="rooms"),
+
+Now in original urls.py include the new meeting urls.py.
+path('meetings/',include('meetings.urls')),
+
+and dont forget to import the include method.
+
+==========================================================
+
+Adding styling to our project:
+-----------------------------
+
+Add styling: CSS
+create a CSS stylesheet
+Apply CSS to HTML
+Template inheritance : Apply CSS Everywhere, Restructure HTML code
+
+to make style to our project and to store css file we need to create a folder name:
+static and there we will store the css file.
+In static folder create a folder name website.
+
+go to website folder and create a static folder and then instead static create website folder again.
+The structure goes similar to template folder.
+
+in that folder nested static/website folder create style.css
+
+body{
+    font-family: sans-serif;
+    color: cornflowerblue;
+    background-color: floralwhite;
+}
+
+now Applying css to welcome.html --> add the following code below title:
+
+Now again its bad practice to use hardcoded url in html.
+so lets define static url with different syntax.
+
+<link rel="stylesheet" href="{% static 'website/style.css' %}">
+
+if you run this it will not work because we have to load or enable static:
+so on top of HTML : write this code
+
+Now it works.
+
+In static folder now you can keep image, etc. and use in html
+<img src="{% static 'website/calender.png' %}" width="100px">
+
+
+Template inheritance :- to apply css in all page as it works for current page.
+
+to do this goto template foler of website and create a file base.html
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}{% endblock %}</title>
+        <link rel="stylesheet" href="{% static 'website/style.css' %}">
+
+    </head>
+    <body>
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>
+
+Add the above code in base.html and now goto welcome.html
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>DJANGO PROJECT</title>
+        <link rel="stylesheet" href="{% static 'website/style.css' %}">
+    </head>
+    <body>
+
+remove these lines and add the following line:
+        </body>
+</html>
+
+do for all pages in meeting
+
+----------------------------
+
+Now interacting with user form:
+-----------------------------
+
+Adding meeting 
+Form template
+ModelForm
+View for processing form data
+    - validate
+    - save
+    - Redirect
+
+In meetings app add new function new in views.py
+
+
+def new(request):
+    return render(request, "meetings/new.html")
+
+
+create a new.html in meeting template
+
+{% extends "base.html" %}
+
+{% block title %} New Meeting {% endblock %}
+
+{% block content %}
+        <h1>Plan a new Meeting</h1>
+        <form>
+            <table>
+                {{ form }}
+            </table>
+        </form>
+{% endblock %}
+
+Now in views.py write following code:
+
+from django.forms import modelform_factory
+
+below room_list function add the following code:
+
+MeetingForm = modelform_factory(Meeting, exclude=[])
+
+-> MeetingForm is class not a regular object.
+now in new function add the following code:
+    def new(request):
+        form = MeetingForm()
+        return render(request, "meetings/new.html", {"form": form})
+
+now add the view function in urls.py
+
+path('new',views.new, name="new"),
+
+visit the url http://127.0.0.1:8000/meetings/new
+
+Since we have generated the form we dont have submit till now:
+lets add it new.html
+
+    <button type="submit"> Create</button>
+    Note: when we send data to the server it takes all the data in url but this is not correct way to send data,
+    we will use one protocol to send data to the server.
+
+    <form method="post"> in new.html
+
+    when you run the server and submit it will give some Error. so to avoid this we need to add :
+    {% csrf_token %}
+    <button type="submit"> Create</button>
+
+    Now it works.
+
+Next step is to process the user input that enter and store it in database.
+
+def new(request):
+    if request.method == "POST":
+        form = MeetingForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("welcome")
+    else:    
+        form = MeetingForm()
+    return render(request, "meetings/new.html", {"form": form})
+
+dont forget to import redirect method.
+
+What happened if the request is submitted the new function will check whether the
+request is recieved or not by POST method. 
+once it is evaluated it will send the data ( in request.POST )
+now we will check whether the data enter is valid or not then we will save the data and redirect the user to Welcome page.
+
+For handy works its always better to create your own ModelForm,
+and perform validation on your own like meeting cant be in past and other.
+
+to create ModelForm --> add a file name forms.py
+
+

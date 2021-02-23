@@ -1,0 +1,687 @@
+def guess():
+    number = randrange(100)
+    while True:
+        try:
+            guess = int(input())
+        except:
+            continue
+        if number == guess:
+            print("you won")
+            break
+
+# if you dont use try block and user input invalid argument then it will throw error
+but in this case if use try catch block with continue then the pgm will not exit with CTRL + C
+
+# using above approach catches all exceptions even KeyboardInterrupt! exceptions
+
+# It generally wrong to catch all exceptions. 
+# Its better to use specific type Error handling.
+
+# exceptions are built in inheritance heirarchy.
+# This facilitates catching exceptions by their base classes
+
+>>> li = [1,2,3]
+>>> li[5]
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+IndexError: list index out of range
+
+>>> d = {'a': 72, 'b': 99}
+>>> d['x']
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+KeyError: 'x'
+
+# the above error represent the same thing that doesn't exixt 
+we can inspect using __mro__ : method resolution order
+
+>>> IndexError.__mro__
+(<class 'IndexError'>, <class 'LookupError'>,
+ <class 'Exception'>, <class 'BaseException'>, 
+ <class 'object'>)
+
+# not it shows the whole heirarchy starting with object root class then moving from right to left
+
+>>> KeyError.__mro__
+(<class 'KeyError'>, <class 'LookupError'>, 
+<class 'Exception'>,
+ <class 'BaseException'>, <class 'object'>)
+
+# now we see that KeyError class have mro as IndexError class
+
+
+# since LookupError is same in both classes we can catch both by catching LookupError
+
+lets demonstrate using basic pgm:
+    look.py
+    >>> from lookup import *
+    >>> lookups()
+    Handled IndexError
+    Handled KeyError
+
+    # you see the pgm work correctly with specific error handling:
+    # Now using LookupError in both error handling:
+
+    except LookupError:
+        print("Handled IndexError")
+
+    except LookupError:
+        print("Handled KeyError")
+
+    # the pgm work correctly in both cases and we have seen that super class LookupError handles
+    # both subclass exceptions.
+
+# OSError : tells us that something has gone wrong with filesystem operation
+
+
++--------------------+
+| Exception Payloads |
++--------------------+
+
+-> Exception can carry payload data
+-> Most exceptions accept a single string in their constructor call
+-> The most common exception you will likely raise is ValueError
+
+
++------------------------+
+| User Defined Exception |
++------------------------+
+
+Sometimes inbuilt exception are not useful or desginated as per your program
+So we can define our own exceptions.
+
+    lets demonstrate:
+        heron.py
+
+        # run with different output
+        # >>> from heron import *
+        # >>> triangle_area(3, 4, 5)
+        # 6.0
+        # >>> triangle_area(3, 4, 10)  [this give error because of negative multiplication]
+        # Traceback (most recent call last):
+        #   File "<stdin>", line 1, in <module>
+        #   File "/home/mohdizhar/Desktop/PYTHON/Exceptional-Handling/heron.py", line 5, in triangle_area
+        #     a = math.sqrt(p * (p - a) * (p - b) * (p - c))
+        # ValueError: math domain error
+
+        # It give error as math domain error but we can print more useful error
+
+        # Define a new TraingleError exception to be more explicit about the error
+        # The new exception should inherit from Exception, not BaseException
+
+        # lets define exception class of our own :- check heron.py
+            class TraingleError(Exception):
+                pass
+
+            this is fully functioning exceptions since it inherits complete
+            implementation of __init__ , __str__, __repr___
+            def triangle_area(a,b,c):
+                sides = sorted(a, b, c)
+                if sides[2] > sides[0] + sides[1]:
+                    raise TraingleError("Illegal traingle")
+         
+            # now test you will see the result
+            >>> from heron import *
+            >>> triangle_area(3, 4, 10)
+            Traceback (most recent call last):
+            File "<stdin>", line 1, in <module>
+            File "/home/mohdizhar/Desktop/PYTHON/Exceptional-Handling/heron.py", line 9, in triangle_area
+                raise TraingleError("Illegal traingle")
+            heron.TraingleError: Illegal traingle
+
+            # it work as expected
+
+            # now lets modify our program that accept more data.
+            class TraingleError(Exception):
+                def __init__(self, text, sides):
+                    super().__init__(text)
+                    self._sides = tuple(sides)
+
+                @property
+                def sides(self):
+                    return self._sides
+
+                # using args from base class method and overriding stra method
+                def __str__(self):
+                    return "'{}' for sides {}".format(self.args[0], self._sides)
+
+                def __repr__(self):
+                    return "TriangleError({!r}, {!r})".format(self.args[0],self._sides)
+
+                
+
+            def triangle_area(a,b,c):
+                sides = sorted((a, b, c))
+                if sides[2] > sides[0] + sides[1]:
+                    raise TraingleError("Illegal traingle", sides)
+
+            # you can use your defined exceptions handling in try catch block also
+            >>> try:
+            ...     triangle_area(3,4,10)
+            ... except TraingleError as e:
+            ...     print(e.sides)
+            ... 
+            (3, 4, 10)
+
++--------------------+
+| Exception Chaining |
++--------------------+
+
+In many cases handling of one exception may result in other exceptions
+PYTHON supports one exception being raised at a time, it provides support for Chaining
+exceptions together so that full context of an exception can be communicated.
+
+1) Implicit Chaining - Occurs when an exception is raised incidentally during processing of another
+                        The original exception is stored on the __context__ attribute of the second
+
+Lets create a bug in our heron.py pgm by creating a main function
+def main():
+    try:
+        a = triangle_area(3,4,10)
+        print(a)
+    except TraingleError as e:
+        print(e, file=sys.stdin) # this is second bug file input
+-> when you run the program you will see the error
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/mohdizhar/Desktop/PYTHON/Exceptional-Handling/heron.py", line 36, in main
+    print(e, file=sys.stdin) # this is second bug file input
+io.UnsupportedOperation: not writable
+
+# while the first exception was Handled correctly.
+lets temporary add some code to handle this error
+        try:
+            print(e, file=sys.stdin)
+        except io.UnsupportedOperation as f: # import io module
+            print(e)
+            print(f)
+            print(f.__context__ is e)
+
+2) Explicit Chaining: Delibiberately associate an exception with a new exception at the point of raising the latter
+                        This is done to translate one exception to another
+    lets demonstrate:
+        Chaining.py
+        >>> from chaining import *
+        >>> inclination(3,5)
+        59.03624346792648
+        
+        # this works fine for more of the outputs but fails for some exception
+        >>> inclination(0,5)
+        Traceback (most recent call last):
+        File "<stdin>", line 1, in <module>
+        File "/home/mohdizhar/Desktop/PYTHON/Exceptional-Handling/chaining.py", line 4, in inclination
+            return math.degrees(math.atan(dy/dx))
+        ZeroDivisionError: division by zero
+
+        # modifying the code with new error type 
+
+        class InclinationError(Exception):
+            pass
+
+        def inclination(dx, dy):
+            try:
+                return math.degrees(math.atan(dy/dx))
+            except ZeroDivisionError as e:
+                raise InclinationError("Slope cannot be vertical") from e
+
+        >>> from chaining import *
+        >>> inclination(0,5)
+        Traceback (most recent call last):
+        File "/home/mohdizhar/Desktop/PYTHON/Exceptional-Handling/chaining.py", line 8, in inclination
+            return math.degrees(math.atan(dy/dx))
+        ZeroDivisionError: division by zero
+
+        The above exception was the direct cause of the following exception:
+
+        Traceback (most recent call last):
+        File "<stdin>", line 1, in <module>
+        File "/home/mohdizhar/Desktop/PYTHON/Exceptional-Handling/chaining.py", line 10, in inclination
+            raise InclinationError("Slope cannot be vertical") from e
+        chaining.InclinationError: Slope cannot be vertical
+
++-----------+
+| Traceback |
++-----------+
+
+Traceback are the records of function call stack.
+In PYTHON 3, every exception object has a __traceback__ attribute
+
+add some more code in chaining.py
+
+def main():
+    try:
+        inclination(0,5)
+    except InclinationError as e:
+        print(e.__traceback__)
+
+    print("Finished")
+
+>> from chaining import *
+>>> main()
+<traceback object at 0x7f9f701d2a88>
+Finished
+
+This doesnt print much to get more detail we will use traceback module
+
+from traceback import print_tb
+
+add new line in main func
+except InclinationError as e:
+        print(e.__traceback__)
+        print_tb(e.__traceback__)
+
+-> now run on standard interpreter as 
+python3.6 -c "import chaining; chaining.main()"
+
+# we have many function in traceback module and can be used
+# but one thing keep in mind you must always render a traceback within the scope of the except block
+
+# Traceback contain refrences to their stack frames and thus to all of the local in those frames
+# means each stack frames contains refrences to all its local variables.
+# Memory usage is more and garbage collected until the traceback is released
+
++-----------+
+| Assertion |
++-----------+
+
+assert condition [, message] ---> optional error message
+          |
+          +-----> Boolean Expression
+                         |
+                         +----> if False raises AssertionError causing program to terminate
+Example:
+    assert False, "The condition was false"
+    # you will see AssertionError is also handled as other exception
+
+A failing Assertion points to programming error either some part of code is wrong or assert statement has some error.
+If the condition is true it has no effect.
+    assert 5 > 2, "You are in Allah's Kingdom"
+
+# Use Assertion to check that your implementation is correct
+In other words, check if the programmer has made a mistake.
+
++------------------+
+| class Invariants |
++------------------+
+
+Its always important to maintain the lifecycle of object.
+to disable assertion use :- python -O (option)
+use when performance demands it.
+
++------------------+
+| Context Managers |
++------------------+
+
+It is an object designed to be used in a with statement.
+When a with statement is executed, the Expression part of the statement, 
+that is the part following the with keyword, evaluates to a value.
+    with Expression:
+            |
+            +-----> must evaluate to a context Manager
+A context Manager implements two methods:
+The first is called before entering the with-block
+The second is called after exiting the with-block.
+
+You can call them as:
+    setup               teardown
+    construction        destruction
+    allocation          deallocation
+In general we will refer them as:
+    enter               exit
+
+An object that ensures that resources are properly and automatically handled.
+The "enter" method ensures that the resource is ready for use.
+The "exit" method ensures that the resource is cleaned up.
+
+--> Files are Context Managers:
+    with open('important_data.txt', 'w') as f:
+        f.write('The secret password is 12345)
+with automatically Manages closing of file.
+
+
+Context Manager Protocol:- supports a specific Protocol.
+                            __enter__()
+                            __exit__()
+
+Context Manager Algorithm:- 
+                            with Expression as x:
+                                    |   # body
+                                    +-------------> must produce an object that both support __enter__ and __exit__ methods.
+Once the expression is evaluated and we have value returned the with statement then calls __enter__ on the
+context Managers with no argument.
+Assuming that __enter__ exceutes successfully, it can return a value. 
+
+If the expression is evaluate successfully then the value of expression.__enter__() is bound to naming convention after as:
+If there is no AS convention then the value is discarded.
+
+For Example:
+    with expression AS x:
+        body
+
+    -> If AS is not specified then the value is discarded. 
+    -> the value of expression.__enter__() is bound to x not the value of expression.
+    -> But this is not always the case it is important to know what the actually is happening
+    -> When the __enter__ has been executed and return its value potentially bounded to x then the with block itself is executed.
+       The with block can terminate in one of two fundamental ways, one with exception or with normal termination i.e completely running the block.
+       In both cases, __exit__ method is called after the block. If the block exits normally __exit__ is called with no extra information
+       and if it exits with exception then exception information is passed to __exit__
+
+       Lets demonstrate with simple context Manager Example:
+            cm.py
+
+            start by creating simple as below and till now they does anything:
+            
+            class LoggingContextManager:
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, exc_type, exc_val, exc_tb):
+                    return 
+
+            Lets try on REPL using with keyword:
+            >>> with LoggingContextManager() as x:
+            ...     print("x =", x)
+            ... 
+            x = <cm.LoggingContextManager object at 0x7f13fcb1cef0>
+            
+            # notice python didnt complaint about anything well the pgm runs correctly and value return by enter __enter__ i.e. self object is bound to x
+            # we demonstrate it even more clear lets return the string value from __enter__ method.
+
+            >>> from cm import *
+            >>> with LoggingContextManager() as x:
+            ...     print("x =", x)
+            ... 
+            x = You are in a with-block
+
+            # now lets print some more information when it exits.
+
+            class LoggingContextManager:
+                def __enter__(self):
+                    # return
+                    print("Logging Context Manager.__enter__()")
+                    return "You are in a with-block!"
+
+                def __exit__(self, exc_type, exc_val, exc_tb):
+                    print("LoggingContextManager.__exit({}, {}, {})".format(exc_type, exc_val, exc_tb))
+                    return 
+
+                # note that __exit__ prints None in all attribute if it exits normally else print exceptions.
+
+                >>> from cm import *
+                >>> with LoggingContextManager() as x:
+                ...     print("x =", x)
+                ... 
+                Logging Context Manager.__enter__()
+                x = You are in a with-block!
+                LoggingContextManager.__exit(None, None, None)
+
+                excatly what we expected.
+
+                Lets try with some exception.
+
+                >>> with LoggingContextManager() as x:
+                ...     raise ValueError("Something has gone wrong")
+                ...     print(x)
+                ... 
+                Logging Context Manager.__enter__()
+                LoggingContextManager.__exit(<class 'ValueError'>, Something has gone wrong, <traceback object at 0x7fea7e758948>)
+                Traceback (most recent call last):
+                File "<stdin>", line 2, in <module>
+                ValueError: Something has gone wrong
+
+                # notice the exception is printed two time at last and in __exit__ : this is because of exception propagation as last one is printed because of REPL and there are ways to prevent exception propagation.
+
+                Lets printing the more correct __exit__ information:
+                cm.py -> Part-2
+                >>> from cm import *
+                >>> with LoggingContextManager():
+                ...     pass
+                ... 
+                Logging Context Manager.__enter__()
+                LoggingContextManager.__exit__: normal exit detected
+
+                >>> with LoggingContextManager():
+                ...     raise ValueError()
+                ... 
+                Logging Context Manager.__enter__()
+                LoggingContextManager.__exit__: Exception Detected! type=<class 'ValueError'>, value=, traceback=<traceback object at 0x7f43b393b908>)
+                Traceback (most recent call last):
+                File "<stdin>", line 2, in <module>
+                ValueError
+
+                ------------------------------------
+                # Propagating Exceptions from with #
+                ------------------------------------
+
+                >>> try:
+                ...     with LoggingContextManager():
+                ...             raise ValueError('The system is down')
+                ... except ValueError:
+                ...     print('*** Value Error escaped the with blocked  ***')
+                ... 
+                Logging Context Manager.__enter__()
+                LoggingContextManager.__exit__: Exception Detected! type=<class 'ValueError'>, value=The system is down, traceback=<traceback object at 0x7f43b393ba48>)
+                *** Value Error escaped the with blocked  ***
+
+                # how __exit__ control the propagation of exception as when with block fails.
+                It happens because of return value:
+                If it return False then exception will be propagated and it will re raise the exception.
+                If it return True then with will terminate normally. without raising the exception.
+
+                # By default it propagates exceptions 
+                # Likewise function return None by default
+
+
+            Lets take a more information what actually PYTHON is doing in with statement.
+            --> with is Defined in PEP343
+            refer to PEP343 for inner working in detail.
+
+
++---------------------------+
+| Context Manager Decorator |
++---------------------------+
+
+we will use standard python library contextlib to get more detail of Decorator.
+This library provides utilities for common tasks involving with statement.
+
+contextmanager is a Decorator used for creating new context Managers
+
+To use contextmanager simply first create a generator.
+Decorate the generator with contextmanager to create context manager factory function.
+
+lets demonstrate:
+cm.py
+# Part-3
+>>> from cm import *
+>>> with my_context_manager() as x:
+...     print(x)
+... 
+logging_context_manager: Enter
+You'r in with-block!
+logging_context_manager: Normal Exit
+
+>>> with my_context_manager() as x:
+...     raise  ValueError()
+... 
+logging_context_manager: Enter
+logging_context_manager: Exceptional Exit (<class 'ValueError'>, ValueError(), <traceback object at 0x7fe5161a5248>)
+
+
+# always use normal exception handling to manage exception propagation
+# re-raising or not catching the exception will propagates out of the with-statement.
+
+# Since we didnt raise the exception it will not propagates.
+lets try to raise exception propagation
+
+just add raise in last line of exception.
+
+>>> with my_context_manager() as x:
+...     raise  ValueError('Somthing went wrong')
+... 
+logging_context_manager: Enter
+logging_context_manager: Exceptional Exit (<class 'ValueError'>, ValueError('Somthing went wrong',), <traceback object at 0x7fd3abe542c8>)
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+ValueError: Somthing went wrong
+
+# Note:- Everything before the yield is part of __enter__() and after is part of __exit__
+
+=> Multple Context Manager handling:
+context manager - cm
+
+with cm1() as a, cm2() as b:
+    body
+
+the above is same as nested with context manager:
+with cm1() as a:
+    with cm2() as b:
+        body
+
+lets demonstrate:
+part-4
+cm.py
+
+>>> from cm import *
+>>> with nest_test('outer') as o, nest_test('inner') as i:
+...     print('BODY')
+... 
+Entering outer
+Entering inner
+BODY
+Exiting inner
+Exiting outer
+
+>>> with nest_test('outer'):
+...     with nest_test('inner'):
+...             print('BODY')
+... 
+Entering outer
+Entering inner
+BODY
+Exiting inner
+Exiting outer
+
+# same result in both
+
+we can pass the outer name bound to inner with statement:
+
+>> from cm import *
+>>> with nest_test('outer') as n1, nest_test('inner with '+n1):
+...     print('BODY')
+... 
+Entering outer
+Entering inner with outer
+BODY
+Exiting inner with outer
+Exiting outer
+
+# Note:- If a inner context manager swallows an exception it can't be seen by outer context manager.
+lets demonstrate
+    Part-5
+
+    >>> from cm import *
+    >>> with propagator('outer', True), propagator('inner',False):
+    ...     raise TypeError()
+    ... 
+    inner recieved an Exception
+    outer Exited normally
+Since outer exied normally since it didnt see the exception
+
+But reverse can:
+    >>> with propagator('outer', False), propagator('inner',True):
+    ...     raise TypeError()
+    ... 
+    inner recieved an Exception
+    outer recieved an Exception
+
+# Note:- Dont pass a sequence i.e. list, tuple or other iteratable to with-statement.
+>>> import contextlib
+>>> 
+>>> @contextlib.contextmanager
+... def nest_test(name):
+...     print('Entering', name)
+...     # yield
+...     # this for name bound testing
+...     yield name
+...     print('Exiting', name)
+... 
+>>> with [nest_test('a'), nest_test('b')]:
+...     pass
+... 
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: __enter__
+
+# Since with take the context manager and list is not a context manager so it throws the error as AttributeError because it doesnt have __enter__ method
+to fix this just remove the list
+
+>>> with nest_test('a'), nest_test('b'):
+...     pass
+... 
+Entering a
+Entering b
+Exiting b
+Exiting a
+
+
+
++-------------------+
+| Practical Example |
++-------------------+
+
+Simple Model of Database Transaction.
+
+Will see how it works without context manager and can leads to problems.
+Then define context manager to fix it.
+
+########################
+# Database Transaction #
+########################
+
+1) Define Database connection class
+2) Transaction class
+3) create connection and Transaction instances to start Transaction.
+4) use Transaction methods to commit or rollback Transactions
+
+db.py
+
+>>> conn = Connection()
+>>> xact = Transaction(conn)
+Starting transaction 0
+>>> xact.commit()
+committing transaction 0
+
+now lets manage using context manager
+
+>>> from db import *
+>>> conn = Connection()
+>>> try:
+...     with start_transaction(conn):
+...             x = 1 + 1
+...             raise ValueError()
+...             y = x + 2
+...             print(f'transaction => {x} {y}')
+... except ValueError:
+...     print('Ooop! operation failed')
+... 
+Starting transaction 0
+rolling back transaction 0
+Ooop! operation failed
+
+# lets run normally in previous we intentionally applied exception.
+>>> try:
+...     with start_transaction(conn) as tx:
+...             x = 1 + 1
+...             y = x + 2
+...             print(f'transaction => {x} {y}')
+... except ValueError:
+...     assert False
+... 
+Starting transaction 1
+transaction => 2 4
+committing transaction 1
+
+

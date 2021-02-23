@@ -1,0 +1,185 @@
+We can call the constructor on the return type directly.
+>>> type(i)(99)
+99
+
+type(type(i))
+<class 'type'>
+# every object in python has an associative type object which is retrieved using the type function.
+>>> i.__class__
+<class 'int'>
+>>> i.__class__.__class__
+<class 'type'>
+>>> i.__class__.__class__.__class__
+<class 'type'>
+
+# this confirms that type is its own type
+
+# Another introspection tool function that we encountered is 
+issubclass() function that takes
+and determine first argument is subclass of second.
+Second argument can be a single class or a tuple of class
+
+>>> type(object)
+<class 'type'>
+
+This circular dependency shows that both type and object are fundamental to the Python object model
+and neither can standalone without the other.
+
+# Another introspection tools is 
+isinstance() function - determine first argument is an instance of a class
+first argument - can be object of any type
+second argument - can be tuple of classes or single classes
+
+-> when type checks are necessary, prefer isinstance() and issubclass()
+over direct comparision of type objects. 
+
++-----------------------+
+| introspecting Objects |
++-----------------------+
+
+earlier we use dir to inspect object that list all the attributes names for an instance.
+>>> v = 99
+>>> dir(v)
+['__abs__', '__add__', '__and__', '__bool__', '__ceil__', '__class__', '__delattr__', 
+'__dir__', '__divmod__', '__doc__', '__eq__', '__float__', '__floor__', '__floordiv__',
+'__format__', '__ge__', '__getattribute__', '__getnewargs__', '__gt__', '__hash__', 
+'__index__', '__init__', '__init_subclass__', '__int__', '__invert__', '__le__', 
+'__lshift__', '__lt__', '__mod__', '__mul__', '__ne__', '__neg__', '__new__', 
+'__or__', '__pos__', '__pow__', '__radd__', '__rand__', '__rdivmod__', '__reduce__',
+'__reduce_ex__', '__repr__', '__rfloordiv__', '__rlshift__', '__rmod__', '__rmul__', 
+'__ror__', '__round__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__', '__rtruediv__', 
+'__rxor__', '__setattr__', '__sizeof__', '__str__', '__sub__', '__subclasshook__', '__truediv__', 
+'__trunc__', '__xor__', 'bit_length', 'conjugate', 'denominator', 'from_bytes', 'imag', 'numerator', 'real', 'to_bytes']
+
+>>> getattr(v, 'denominator')
+1
+
+# getattr is used to get the specific attributes of object
+>>> v.denominator
+1
+
+>>> getattr(v, 'conjugate')
+<built-in method conjugate of int object at 0x7f544de285e0>
+
+# this reveal that conjugate is a method
+>>> callable(getattr(v, 'conjugate'))
+True
+
+>>> v.conjugate.__class__.__name__
+'builtin_function_or_method'
+
+# trying to retrieve attribute that doesn't exist will result in AttributeError
+>>> getattr(v, 'index')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: 'int' object has no attribute 'index'
+
+# hasattribute() function helps to check whether attribute exist or not.
+>>> hasattr(v, 'bit_length')
+True
+
+-> Always prefer "EAFP" - 'Easier to Ask Forgiveness'
+-> Programs using hasattr() can quickly become messy (because it internally uses an exception handler way)
+-> The optimistic approach can actually be faster
+
+-> int includes attributes allowing it to be used as a rational or complex number
+-> getattr() allows to access attribute using string name
+-> callable() determine if an object can be called like a function
+
+-> object store their type information in __class__ attributes
+-> class object store their name in __name__ attribute
+
+
++-----------------------+
+| introspecting Scopes  |
++-----------------------+
+
+Python contain two built in function for examining the concept of Scopes.
+1) globals() - this return dictionary which represent the global namespaces
+>>> globals()
+{'__name__': '__main__', '__doc__': None, '__package__': None, '__loader__': <class '_frozen_importlib.BuiltinImporter'>, '__spec__': None, '__annotations__': {}, '__builtins__': <module 'builtins' (built-in)>, 'i': 7299, 'v': 99}
+
+The dictionary  returned by globals() doesnt just represent  the global namespace, it
+actually is the global namespace.
+-> run globals()  on new interpreter
+-> create a varaible and store any value then again run globals() you will see that new key value attributes is added
+-> lets create another namespaces in globals()
+        globals()['mdi'] = 7299
+        -> now run mdi you will see the output
+
+2) locals() - returns the same dictionary as globals()
+              but to check lets create a function
+
+              def report_scope(arg):
+                    from pprint import pprint as pp
+                    m = 9972
+                    pp(locals(), width=10)
+
+              report_scope(7299)
+
+# Unpacking the local namespaces
+# keyword in python are stored as **
+
+name = "Mohd Izhar"
+age = 22
+country = "India"
+"{name}  is {age} years old and is from {country}".format(**locals())
+
+By default in f string it is automatically called
+f"{name}  is {age} years old and is from {country}"
+
+
++----------------+
+| inspect module |
++----------------+
+
+inspect module in python standard library contains advanced tools for
+introspecting python Objects in more details.
+
+-> batch.py File
+
++--------------------------------+
+| introspecting Type Annotations |
++--------------------------------+
+
+def num_vowels(text: str) -> int:
+    return sum(1 if c.lower() in 'aeiou' else 0 for c in text)
+
+# In this function 
+first Annotations says that the text argument needs to be a string
+second Annotations says that the type of the returned object will be an int.
+>>> import inspect
+>>> sig = inspect.signature(num_vowels)
+>>> sig.parameters['text']
+<Parameter "text:str">            ---> this output shows the Annotations along with varaible
+
+# we can get Annotations attribute of the parameter directly.
+>>> sig.parameters['text'].annotation
+<class 'str'>
+
+# similarly the return type annotation can be seen by looking  at the repr of the signature
+>>> sig
+<Signature (text:str) -> int>
+# or explicitly
+>>> sig.return_annotation
+<class 'int'>
+
+# to get the function annotation entirely 
+>>> num_vowels.__annotations__
+{'text': <class 'str'>, 'return': <class 'int'>}
+# python store annotation information at runtime
+
+
++------------------------------+
+| An Object introspection Tool |
++------------------------------+
+
+# combining all knowledge and bringing them together into a useful Programs
+__________________________
+| Object Formatting Tool | 
+|________________________| 
+
+getting object information in beautiful way
+
+introspector.py
+
