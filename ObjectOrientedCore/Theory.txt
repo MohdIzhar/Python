@@ -1,0 +1,73 @@
+-> self.serial = self.next_serial 
+-> self.next_serial += 1                        # this doesn't affect the class attribute
+-> self.next_serial = self.next_serial + 1      # this will hide the class attribute and create a new instance attribute and have no effect no self.serial so its better to use Class name to access class attribute
+                                                # remember LEGB rule
+
+Static Method -> helps to access without using instance self
+@staticmethod
+def _generate_serial():
+    result = ShippingContainer.next_serial
+    ShippingContainer.next_serial += 1
+    return result
+
+Class Method -> helps to access using cls keyword passed in Method
+attribute = "This is class attribute"
+@classmethod
+def myclass_method(cls, message):
+    cls.attribute = message
++-----------------------+-------------------------+
+|   CLASS Method        VS        STATIC Method   |
++-----------------------+-------------------------+
+| Require access to the | No access needed to     |
+| class object to call  | either class or instance|
+| other class method or | objects.                |
+| constructor.          | Mostly implementation   |
+|                       | detail of the class.    |
+|                       | May be able to moved    |
+|                       | outside the class to    |
+|                       | become global scope     |
+|                       | function in module      |
++-----------------------+-------------------------|
+
+Getter and Setter are unpythonic instead we will use @property
+Don't override properties directly use delegate regular methods and override those instead
+repr helps to evaluate format expression using eval()
+to evaluate repr all text must contain declare variable or class name or method
+
+format_specifier in format function
+
+q = 7.748091e-5
+format(q)
+format(q, "f") # f-> fixed format
+
+format(q,".7f")
+format(q,"+.11f")
+format(q,">+20.11f")
+
+If we inherit base class and doesnt do anything in subclass base initializer will be called
+-> If class uses multiple inheritance and defines no initializer, only the initializer
+of the first base class is called automatically.
+
+# MRO method is used in python inheritance to determine inheritance priority
+# C3 algorithm works behind MRO
+# i.e order must preserved in inheritance
+
+# Decorators File -> location.py
+# String -> position.py
+
+writing dunder function automatically using autorepr 
+now remove all dunder function
+
+def __repr__(self):
+        return f"{typename(self)}(name={self.name}, position={self.position})"
+
+def __str__(self):
+    return self.name
+
+
+# decorator class are need we need decorative class are defined and __module__ is first imported
+# module in python are singleton which means every module exist only once in memory
+# it decorator must ensure that dunder method dont exist already
+
+Frozen makes the data immmutable in class Decorators
+Hashing data in Decorators attribute must be immmutable
