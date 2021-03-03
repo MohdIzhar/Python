@@ -20,4 +20,11 @@ class SortedSet:
             repr(self._items) if self._items else ''
         )
 
+    def __eq__(self,rhs):
+        if not isinstance(rhs, SortedSet):
+            return NotImplemented
+        return self._items == rhs._items
+
+    
+
         

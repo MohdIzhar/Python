@@ -189,3 +189,30 @@ class TestReprProtocol(unittest.TestCase):
 But their is another issue.
 
 
+class TestEqualityProtocol(unittest.TestCase):
+    def test_positive_equal(self):
+        self.assertTrue(SortedSet([4,5,6]) == SortedSet([6,5,4]))
+
+    def test_negative_equal(self):
+        self.assertFalse(SortedSet([1,2,3]) == SortedSet([6,5,4]))
+
+    def test_type_mismatch(self):
+        self.assertFalse(SortedSet([4,5,6]) == [4,5,6])
+
+    def test_identical(self):
+        s  = SortedSet([10,11,12])
+        self.assertTrue(s == s)
+
+# Running TestCase fails
+
+    def __eq__(self,rhs):
+        return self._items == rhs._items
+
+    Note:- type test_type_mismatch will still fail
+        def __eq__(self,rhs):
+        if not isinstance(rhs, SortedSet):
+            return NotImplemented
+        return self._items == rhs._items
+
+Now all TestCase passes
+
