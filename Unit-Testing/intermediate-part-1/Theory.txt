@@ -42,3 +42,37 @@ class TestContainerProtocol(unittest.TestCase):
 > run tests // now passes all
 
 
+Part:- 2 (Sized Protocol)
+
+Must not consume or modify Collection
+use of len(items) function
+
+class TestSizedProtocol(unittest.TestCase):
+    def test_empty(self):
+        s = SortedSet()
+        self.assertEqual(len(s),0)
+
+    def test_one(self):
+        s = SortedSet([9972])
+        self.assertEqual(len(s),1)
+
+    def test_ten(self):
+        s = SortedSet(range(10))
+        self.assertEqual(len(s),10)
+
+    def test_with_duplicates(self):
+        s = SortedSet([99,99,99])
+        self.assertEqual(len(s),1)
+
+# Running this will fail test cases
+# In sorted_set.py
+
+    def __len__(self):
+        return len(self._items)
+
+Note: all the test cases passes except test_with_duplicates one because the SortedSet dont check for unique items
+      To make this pass: self._items = sorted(set(items))
+
+Now run all TestCase passes
+
+
