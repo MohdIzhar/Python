@@ -166,3 +166,26 @@ class TestSequenceProtocol(unittest.TestCase):
         
 Note: the will fail again but now for different reason of slicing
 
+Part:- 5 (Repr protocol for debuging - __repr__ )
+
+
+class TestReprProtocol(unittest.TestCase):
+    def test_repr_empty(self):
+        s = SortedSet()
+        self.assertEqual(repr(s), "SortedSet()")
+
+    def test_repr_some(self):
+        s = SortedSet([42,48,19])
+        self.assertEqual(repr(s), "SortedSet([19, 40, 48])")
+
+# now total 7 cases will fail - 5 slicing and two repr
+
+    def __repr__(self):
+        return "SortedSet({})".format(
+            repr(self._items) if self._items else ''
+        )
+
+# Now Running TestCase will pass repr tests cases
+But their is another issue.
+
+
