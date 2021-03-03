@@ -368,7 +368,7 @@ Note:- Similarly we can add all the set operation TestCases difference, symmetri
 
 Rather implementing the all __dunder__ function for Set protocols just inherit from collections.abc module like we inherited Sequence
 
-Note: inheriting Set will work in operators cases
+Note: inheriting Set will work in operators cases not in iterable cases
 
 # use self on left hand side always in these set protocol cases
     def issubset(self,iterable):
