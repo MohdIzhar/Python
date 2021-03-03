@@ -145,7 +145,28 @@ class TestSequenceProtocol(unittest.TestCase):
         s = SortedSet([1,5,7,9])
         self.assertEqual(s.count(7),1)
 
+    def test_concatenate_disjoint(self):
+        s = SortedSet([1,2,3])
+        t = SortedSet([4,5,6])
+        self.assertEqual(s+t, SortedSet([1,2,3,4,5,6]))
         
+    def test_concatenate_equal(self):
+        s = SortedSet([2,4,6])
+        self.assertEqual(s+s, s)
+
+    def test_concatenate_intersecting(self):
+        s = SortedSet([1,2,3])
+        t = SortedSet([3,4,5])
+        self.assertEqual(s+t, SortedSet([1,2,3,4,5]))
+
+    def test_repetition_zero(self):
+        s = SortedSet([4,5,6])
+        self.assertEqual(0*s, SortedSet())
+
+    def test_repetition_nonzeror(self):
+        s = SortedSet([4,5,6])
+        self.assertEqual(100*s, s)
+
 
 class TestReprProtocol(unittest.TestCase):
     def test_repr_empty(self):

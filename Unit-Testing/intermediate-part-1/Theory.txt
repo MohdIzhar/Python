@@ -267,3 +267,55 @@ from collections.abc import Sequence        // refer to doc for details
 
 class SortedSet(Sequence):
 
+-----------------------------------------------------------
+    def test_count_zero(self):
+        s = SortedSet([1,5,7,9])
+        self.assertEqual(s.count(11),0)
+
+    def test_count_one(self):
+        s = SortedSet([1,5,7,9])
+        self.assertEqual(s.count(7),1)
+
+
+# for more info about collections refer to docs
+--------------------------------------------------------------
+Part:- 9 (concatenation and repetition protocols)
+
+    def test_concatenate_disjoint(self):
+        s = SortedSet([1,2,3])
+        t = SortedSet([4,5,6])
+        self.assertEqual(s+t, SortedSet([1,2,3,4,5,6]))
+        
+    def test_concatenate_equal(self):
+        s = SortedSet([2,4,6])
+        self.assertEqual(s+s, s)
+
+    def test_concatenate_intersecting(self):
+        s = SortedSet([1,2,3])
+        t = SortedSet([3,4,5])
+        self.assertEqual(s+t, SortedSet([1,2,3,4,5]))
+
+# Running TestCase will fail
+
+    def __add__(self, rhs):
+        return SortedSet(chain(self._items, rhs._items))
+     
+-------------------------------------------------------------------------------
+
+    def test_repetition_zero(self):
+        s = SortedSet([4,5,6])
+        self.assertEqual(0*s, SortedSet())
+
+    def test_repetition_nonzeror(self):
+        s = SortedSet([4,5,6])
+        self.assertEqual(100*s, s)
+
+
+# fail Running TestCase
+
+    def __mul__(self, rhs):
+        return self if rhs > 0 else SortedSet()
+
+    def __rmul__(self, lhs):
+        return self * lhs
+
