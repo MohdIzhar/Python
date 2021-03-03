@@ -13,6 +13,7 @@ Two files:
     sorted_set.py
 
 Testing iterable with generator is best way.
+---------------------------------------------------------------------------------------------------------------------------------------------
 
 Part:- 1
 
@@ -41,6 +42,7 @@ class TestContainerProtocol(unittest.TestCase):
 
 > run tests // now passes all
 
+-----------------------------------------------------------------------------------------------------
 
 Part:- 2 (Sized Protocol)
 
@@ -75,8 +77,9 @@ Note: all the test cases passes except test_with_duplicates one because the Sort
 
 Now run all TestCase passes
 
+----------------------------------------------------------------------------------------------------------------------------------
 
-Part:- 2 (Iterable Protocol - __iter__ )
+Part:- 3 (Iterable Protocol - __iter__ )
 
 # takes an iterable
 
@@ -107,6 +110,8 @@ class TestIterableProtocol(unittest.TestCase):
         for item in self._items:
             yield item 
         this is generator and likely to be slow but both approach works
+
+------------------------------------------------------------------------------------------------------------------
 
 Part:- 4 (Sequence Protocol - __getitem__ )
 
@@ -166,8 +171,9 @@ class TestSequenceProtocol(unittest.TestCase):
         
 Note: the will fail again but now for different reason of slicing
 
-Part:- 5 (Repr protocol for debuging - __repr__ )
+-------------------------------------------------------------------------------
 
+Part:- 5 (Repr protocol for debuging - __repr__ )
 
 class TestReprProtocol(unittest.TestCase):
     def test_repr_empty(self):
@@ -215,6 +221,7 @@ class TestEqualityProtocol(unittest.TestCase):
         return self._items == rhs._items
 
 Now all TestCase passes
+------------------------------------------------------------------------------------------------
 
 Part: 6-7 (Equality and Inequality Protocol - __eq__ )
 
@@ -235,6 +242,7 @@ class TestInequalityProtocol(unittest.TestCase):
 
 # this will pass all TestCase by negating the __eq__ protocol
 # best practice is to write __ne__ :
+----------------------------------------------------------------------------------
 
 Part:- 8 Index Protocol & Reversed Protocol
 
@@ -319,3 +327,64 @@ Part:- 9 (concatenation and repetition protocols)
     def __rmul__(self, lhs):
         return self * lhs
 
+-------------------------------------------------------------------------
+
+Part:- 10  (Set Protocol)
+
+class TestSetRelationalMethods(unittest.TestCase):
+    def test_issubset_proper_positive(self):
+        s = SortedSet({1,2})
+        t = [1,2,3]
+        self.assertTrue(s.issubset(t))
+
+    def test_issubset_positive(self):
+        s = SortedSet({1,2,3})
+        t = [1,2,3]
+        self.assertTrue(s.issubset(t))
+
+    def test_issubset_negative(self):
+        s = SortedSet({1,2,3})
+        t = [1,2]
+        self.assertFalse(s.issubset(t))
+
+    def test_issuperset_proper_positive(self):
+        s = SortedSet({1,2,3})
+        t = [1,2]
+        self.assertTrue(s.issuperset(t))
+
+    def test_issuperset_positive(self):
+        s = SortedSet({1,2,3})
+        t = [1,2,3]
+        self.assertTrue(s.issuperset(t))
+
+    def test_issuperset_negative(self):
+        s = SortedSet({1,2})
+        t = [1,2,3]
+        self.assertFalse(s.issuperset(t))
+
+# fails TestCases
+
+Note:- Similarly we can add all the set operation TestCases difference, symmetric_difference, intersection, etc.
+
+Rather implementing the all __dunder__ function for Set protocols just inherit from collections.abc module like we inherited Sequence
+
+Note: inheriting Set will work in operators cases
+
+# use self on left hand side always in these set protocol cases
+    def issubset(self,iterable):
+        return self <= SortedSet(iterable)
+
+    def issuperset(self,iterable):
+        return self >= SortedSet(iterable)
+    
+    def intersection(self, iterable):
+        return self & SortedSet(iterable)
+
+    def union(self, iterable):
+        return self | SortedSet(iterable)
+
+    def symmetric_differnce(self, iterable):
+        return self ^ SortedSet(iterable)
+
+    def differnce(self, iterable):
+        return self - SortedSet(iterable)

@@ -1,7 +1,7 @@
-from collections.abc import Sequence
+from collections.abc import Sequence, Set
 from itertools import chain
 
-class SortedSet(Sequence):
+class SortedSet(Sequence, Set):
     def __init__(self, items = None):
         self._items = sorted(set(items)) if items is not None else []
 
@@ -41,3 +41,22 @@ class SortedSet(Sequence):
 
     def __rmul__(self, lhs):
         return self * lhs
+
+    # use self on left hand side always in these set protocol cases
+    def issubset(self,iterable):
+        return self <= SortedSet(iterable)
+
+    def issuperset(self,iterable):
+        return self >= SortedSet(iterable)
+    
+    def intersection(self, iterable):
+        return self & SortedSet(iterable)
+
+    def union(self, iterable):
+        return self | SortedSet(iterable)
+
+    def symmetric_differnce(self, iterable):
+        return self ^ SortedSet(iterable)
+
+    def differnce(self, iterable):
+        return self - SortedSet(iterable)
