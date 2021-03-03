@@ -1,0 +1,16 @@
+Implementing Collection using TDD - Test Driven Development approach.
+
+Container - in , not in 
+Sized
+Iterable
+Sequence
+Set - various set operation intersection, union, etc
+
+Lets build SortedSet Collection that Implements all these 5 protocols that have distinct element and constructible from an element.
+
+Two files:
+    test_sorted_set.py
+    sorted_set.py
+
+Testing iterable with generator is best way.
+
