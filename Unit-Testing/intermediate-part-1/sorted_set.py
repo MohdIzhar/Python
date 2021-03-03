@@ -25,6 +25,9 @@ class SortedSet:
             return NotImplemented
         return self._items == rhs._items
 
-    
+    def __ne__(self,rhs):
+        if not isinstance(rhs, SortedSet):
+            return NotImplemented
+        return self._items != rhs._items
 
         

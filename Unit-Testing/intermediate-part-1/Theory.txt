@@ -234,3 +234,5 @@ class TestInequalityProtocol(unittest.TestCase):
 
 
 # this will pass all TestCase by negating the __eq__ protocol
+# best practice is to write __ne__ :
+
