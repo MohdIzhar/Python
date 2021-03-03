@@ -14,3 +14,31 @@ Two files:
 
 Testing iterable with generator is best way.
 
+Part:- 1
+
+# Running this piece of code without implementing the __contains__() will throw error (try)
+
+class TestContainerProtocol(unittest.TestCase):
+    def setUp(self):
+        self.s = SortedSet([6,7,3,9])
+
+    def test_positive_contained(self):
+        self.assertTrue(6 in self.s)
+    
+    def test_negative_contained(self):
+        self.assertFalse(2 in self.s)
+
+    def test_positive_not_contained(self):
+        self.assertTrue(5 not in self.s)
+
+    def test_negative_not_contained(self):
+        self.assertFalse(8 in self.s)
+
+# In sorted_set.py implementing __contains__()
+
+    def __contains__(self, item):
+        return item in self._items
+
+> run tests // now passes all
+
+
