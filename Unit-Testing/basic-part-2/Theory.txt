@@ -1,0 +1,174 @@
+To skip particular test case:-
+
+    @unittest.skip('WIP')
+    def test_empty_phonebook_is_consistent(self):
+        self.assertTrue(self.phonebook.is_consistent())
+
+    WIP = Work in Progress
+
+-> in phonebook.py
+def is_consistent(self):
+        return True
+
+==================
+Order of execution
+==================
+
+setUp() ---> TestCaseMethods() ----> tearDown()
+
+Key points:
+    1) If exception is thrown in TestCaseMethods(), tearDown() will still run.
+    2) If exception is thrown in setUp(), neither TestCaseMethods() are run nor tearDown() is run.
+       Because tearDown() is supposed to release the resources allocated in setUp(), so if setUp fails
+       tearDown() assume that there are no resources to release.
+    3) Sometime you dont write tearDown(), and then it is managed by memory manager.
+
+
+# example of poor design:-
+
+    def test_is_consistent(self):
+        self.phonebook.add('Bob','12345')
+        self.assertTrue(self.phonebook.is_consistent())
+        self.phonebook.add('Anna','012345')
+        self.assertTrue(self.phonebook.is_consistent())
+        self.phonebook.add('Sue','12345')                   # identical Bob
+        self.assertFalse(self.phonebook.is_consistent())
+        self.phonebook.add('Sue','123')                     # prefix of Bob
+        self.assertFalse(self.phonebook.is_consistent())
+
+>> run the test case
+
+The test case will fail at some line in my case line 30 i.e --> 
+
+        self.assertFalse(self.phonebook.is_consistent())
+        self.phonebook.add('Sue','123')                     # prefix of Bob
+        self.assertFalse(self.phonebook.is_consistent())
+    
+Note:- the test case will run and exit as soon as it encounter some error or exception, Because since we haven't define is_consistent()
+       method properly. In this case last two lines doesn't executed because of error and stops further execution.
+
+Three Parts of tests:-
+====================
+
+Arrange - setup object to be tested 
+Act - exercise the unit under test
+Assert - makes claims about what happened
+
+def test_lookup_by_name(self):                       --> Test Case Name
+        self.phonebook.add('Bob','12345')            --> Arrange
+        number = self.phonebook.lookup('Bob')        --> Act
+        self.assertEqual(number,'12345')             --> Assert
+
+def test_is_consistent(self):                                       --> Test Case Name
+        self.phonebook.add('Bob','12345')                           --> Act
+        self.assertTrue(self.phonebook.is_consistent())             --> Assert
+        self.phonebook.add('Anna','012345')                         --> Act
+        self.assertTrue(self.phonebook.is_consistent())             --> Assert
+        self.phonebook.add('Sue','12345')         # identical Bob   --> Act
+        self.assertFalse(self.phonebook.is_consistent())            --> Assert
+        self.phonebook.add('Sue','123')           # prefix of Bob   --> Act
+        self.assertFalse(self.phonebook.is_consistent())            --> Assert
+
+
+Now better design with Arrange-Act-Assert:
+-----------------------------------------
+
+    def test_is_consistent_with different_entries(self):
+        self.phonebook.add('Bob','12345')
+        self.phonebook.add('Anna','012345')
+        self.assertTrue(self.phonebook.is_consistent())
+
+    def test_inconsistent_with_duplicate_entries(self):
+        self.phonebook.add('Bob','12345')
+        self.phonebook.add('Sue','12345')
+        self.assertFalse(self.phonebook.is_consistent())
+
+    def test_inconsistent_with_duplicate_prefix(self):
+        self.phonebook.add('Sue','123')
+        self.phonebook.add('Bob','12345')
+        self.assertFalse(self.phonebook.is_consistent())
+
+>> now run will get better overview what is working what not.
+
+-> In phonebook.py
+
+    def is_consistent(self):
+        """ Check for unique numbers """
+        for name1, number1 in self._numbers.items():
+            for name2, number2 in self._numbers.items():
+                if name1 == name2:
+                    continue
+                if number1.startswith(number2):
+                    return False
+        return True
+
+>> Now run test cases it passess all.
+
+That enough for basic level for detail refer to:
+    https://github.com/emilybache/Phone-Numbers-Kata
+
+
+    def test_phonebook_add_names_and_numbers(self):
+        self.phonebook.add('Sue','12345')
+        self.assertIn('Sue',self.phonebook.get_names())
+        self.assertIn('123343',self.phonebook.get_numbers())    // this assert take second argument as iterable.
+
+
+
++----------------+
+| Why unittest ? |
++----------------+
+
+Understand what to build.
+    Collaborate with people: Tester, Designer, Business Analyst, Architect and End-user.
+
+Helps in Documenting the units.
+
+Designing the Units.
+    High Cohesion and Loose Coupling
+
+Regression Testing.
+    Ensures previously developed and tested software still performs after a change.
+    Pin point failure.
+
++-------------------------+
+| Limitations of unittest |
++-------------------------+
+
+Hard to write if units have many dependencies.
+Test scenario may not occur in production.
+Tests may not notice failures.
+unittest don't find integeration or non-functional problems.
+
+====================================================================================================
+
+Test last
+---------
+
+Test come after code.
+Test when design is stable.
+Late bug discovery.
+
+Write Code --> Write Test --> Debug and Rework
+   
+     
+Test First
+----------
+
+ Design Sketch ---> Write All Tests
+    |                   |
+    |-------------- Write All Code
+Debug and Rework        |
+    |___________________|
+
+Hard to predict All cases.
+Design is testable.
+
+Test Driven Development - TDD 
+-----------------------
+
+Write One Test ---> Make it pass 
+ |                        |
+ +--------Refactor--------+
+
+ 
