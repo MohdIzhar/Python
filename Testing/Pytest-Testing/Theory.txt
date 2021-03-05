@@ -1,0 +1,240 @@
+>>> python3 -m pip install -U pytest
+
+test_phonebook.py 
+
+def test_lookup_by_name():
+    phonebook = PhoneBook()
+    number = phonebook.add('Bob', '1234')
+    assert '1234' == phonebook.lookup('Bob')
+
+>>> python3.6 -m pytest
+
+Fails and show some description
+
+class PhoneBook:
+
+    def add(self, name, number):
+        pass
+
+    def lookup(self, name):
+        pass
+
+def test_lookup_by_name():
+    phonebook = PhoneBook()
+    number = phonebook.add('Bob', '1234')
+    assert '1234' == phonebook.lookup('Bob')
+
+>>> python3 -m pytest
+
+Now it gives detail information where it fails, where it get the value from, etc.
+
+---
+
+class PhoneBook:
+
+    def __init__(self) -> None:
+        self._numbers = {}
+
+    def add(self, name, number):
+        self._numbers[name] = number
+
+    def lookup(self, name):
+        return self._numbers[name]
+
+def test_lookup_by_name():
+    phonebook = PhoneBook()
+    number = phonebook.add('Bob', '1234')
+    assert '1234' == phonebook.lookup('Bob')
+
+>>> python3.6 -m pytest
+
+---
+
+class PhoneBook:
+
+    def __init__(self) -> None:
+        self._numbers = {}
+
+    def add(self, name, number):
+        self._numbers[name] = number
+
+    def lookup(self, name):
+        return self._numbers[name]
+
+    def names(self):
+        return set(self._numbers.keys())
+
+def test_lookup_by_name():
+    phonebook = PhoneBook()
+    number = phonebook.add('Bob', '1234')
+    assert '1234' == phonebook.lookup('Bob')
+
+def test_phonebook_contains_all_names():
+    phonebook = PhoneBook()
+    number = phonebook.add('Bob', '1234')
+    assert phonebook.names() == {'Bob', 'Missing'}
+
+# coment the previous assert and try this one:
+assert "Missing" in phonebook.names()
+
+# again coment the previous assert and try this one:
+assert "Bob" in phonebook.names()
+
+
+def test_phonebook_contains_all_names():
+    phonebook = PhoneBook()
+    number = phonebook.add('Bob', '1234')
+    # assert phonebook.names() == {'Bob', 'Missing'}
+    # assert "Missing" in phonebook.names()
+    assert "Bob" in phonebook.names()
+    
+----
+
+def test_missing_name_raises_error():
+    phonebook = PhoneBook()
+    with pytest.raises(KeyError):
+        phonebook.lookup('Bob')
+
+Note running this passes all test cases:
+
+-> intentionally raising error to see what pytest complains
+
+def test_missing_name_raises_error():
+    phonebook = PhoneBook()
+    phonebook.add('Bob', '1234')
+    with pytest.raises(KeyError):
+        phonebook.lookup('Bob')
+
+Running again gives:
+Failed: DID NOT RAISE <class 'KeyError'>
+
+---
+
++----------------+
+| Pytest Fixture |
++----------------+
+
+@pytest.fixture
+def resource():
+    return Resource()
+
+==============
+
+import pytest
+
+class PhoneBook:
+
+    def __init__(self) -> None:
+        self._numbers = {}
+
+    def add(self, name, number):
+        self._numbers[name] = number
+
+    def lookup(self, name):
+        return self._numbers[name]
+
+    def names(self):
+        return set(self._numbers.keys())
+
+@pytest.fixture
+def phonebook():
+    return PhoneBook()
+
+def test_lookup_by_name(phonebook):
+    phonebook.add('Bob', '1234')
+    assert '1234' == phonebook.lookup('Bob')
+
+def test_phonebook_contains_all_names(phonebook):
+    phonebook.add('Bob', '1234')
+    # assert phonebook.names() == {'Bob', 'Missing'}
+    # assert "Missing" in phonebook.names()
+    assert "Bob" in phonebook.names()
+    
+def test_missing_name_raises_error(phonebook):
+    with pytest.raises(KeyError):
+        phonebook.lookup('Bob')
+
+
+>>> Running test cases still passes all
+
+---
+
+keeping phonebook class in :- phonebook.py file
+
+Now adding method and cache to phonebook class
+
+class PhoneBook:
+
+    def __init__(self) -> None:
+        self._numbers = {}
+        self.filename = 'phonebook.txt'
+        self.cache = open(self.filename,'w')
+
+    def add(self, name, number):
+        self._numbers[name] = number
+
+    def lookup(self, name):
+        return self._numbers[name]
+
+    def names(self):
+        return set(self._numbers.keys())
+
+    def clear(self):
+        self.cache.close()
+        os.remove(self.filename)
+
+>>> running test case generate a new file phonebook.txt
+
+Lets clear the cache after running the test cases:
+
+@pytest.fixture
+def phonebook():
+    phonebook = PhoneBook()
+    yield phonebook
+    phonebook.clear()
+
+>>> running test case generate a new file phonebook.txt and removes it.
+
+Now creating a folder path where pytest can keep the caches and then remove the folder when it is done.
+
+class PhoneBook:
+
+    def __init__(self, cache_directory) -> None:
+        self._numbers = {}
+        self.filename = os.path.join(cache_directory, 'phonebook.txt')
+        self.cache = open(self.filename,'w')
+
+
+# passing temp directory name to fixture
+@pytest.fixture
+def phonebook(tmpdir):
+    phonebook = PhoneBook(tmpdir)
+    yield phonebook
+    phonebook.clear()
+
+>>> running this will create the folder and remove the caches folder
+Note: temp directory name should be tmpdir.
+
+
+>>> pytest --fixtures           # to get the doc string of fixture
+
+-> To skip test case:
+
+@pytest.mark.skip('WIP')
+def test_missing_name_raises_error(phonebook):
+    with pytest.raises(KeyError):
+        phonebook.lookup('Bob')
+
+@pytest.mark.skipif(sys.version_info < (3,6), reason = "requires python3.6 or higher")
+def test_missing_name_raises_error(phonebook):
+    with pytest.raises(KeyError):
+        phonebook.lookup('Bob')
+
+For detail about pytest refer to documentation.
+
+Note:- Pytest also have HTML plugin to show the report on browser.
+        python3.6 -m pip install pytest-html
+
+>>> python3 -m pytest --html=report.html
+>>> xdg-open report.html
+
