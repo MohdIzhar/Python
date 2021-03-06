@@ -1,0 +1,22 @@
+Runs some test cases on terminal.
+
+>>> small_straight([1,2,3,4,5])
+15
+>>> small_straight([1,2,3,5,5])
+0
+>>> small_straight({1,2,3,5,5})
+0
+>>> small_straight([1,2,3,5,4])
+0
+
+Now paste in docstring.
+
+>>> python3.6 -m doctest                    // fail beacuse require default filename doctest.py 
+>>> python3.6 -m doctest yatzy.py           // doesn't print anything 
+>>> python3.6 -m doctest yatzy.py -v        // to get verbose information
+
+>>> python3.6 -m pytest --doctest-modules   // to run using pytest
+
+Note:-
+    Preferably use pytest beacuse it can help in building pipeline and continous integeration.
+
