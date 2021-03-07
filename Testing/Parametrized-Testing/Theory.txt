@@ -1,0 +1,143 @@
+Parametrized testing is done when we have test running with parameters.
+Each test is called with different parameters.
+
+Noraml testing:
+--------------
+
+def test_0_0_love_all():
+    assert score_tennis(0,0) == 'Love-All'
+
+def test_1_1_love_all():
+    assert score_tennis(1,1) == 'Fifteen-All'
+
+def test_2_2_love_all():
+    assert score_tennis(2,2) == 'Thirty-All'
+
+Parametrized testing using pytest:
+=================================
+
+                                +---> first argument is parameters
+                                |                                                           +---> list of test cases with same parameter as argument-1
+                                |                                                           |
+@pytest.mark.parametrize("player1_points, player2_points, expected_score", [(0,0, 'Love-All'), (1,1, 'Fifteen-All'), (2,2,'Thirty-All')])
+def test_scores_tennis(player1_points, player2_points, expected_score):
+    assert score_tennis(player1_points, player2_points) == expected_score
+
+>>> python3.6 -m pytest
+6 passed in 0.36s           // 3 Normal and 3 Parametrized
+
+
+===================================================================================
+
+from tennis import score_tennis
+
+import unittest
+
+class TestTennisScore(unittest.TestCase):
+
+    def test_0_0_love_all(self):
+        self.assertEqual(score_tennis(0,0), 'Love-All')
+
+    def test_1_1_love_all(self):
+        self.assertEqual(score_tennis(1,1), 'Fifteen-All')
+
+    def test_2_2_love_all(self):
+        self.assertEqual(score_tennis(2,2), 'Thirty-All')
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+
+Parametrized testing using unittest:
+===================================
+
+class TestTennisScore(unittest.TestCase):
+
+    def test_tennis_scores(self):
+        test_cases = [
+            (0, 0, 'Love-All'),
+            (1, 1, 'Fifteen-All'),
+            (2, 2, 'Thirty-All')
+        ]
+        for player1_points, player2_points, expected_score in test_cases:
+            self.assertEqual(score_tennis(player1_points, player2_points), expected_score)
+
+Now:- here is a problem we dont know how_many test cases run in this, so to resolve this:
+
+        for player1_points, player2_points, expected_score in test_cases:
+            with self.subTest(f'{player1_points}, {player2_points} -> {expected_score}'):
+                self.assertEqual(score_tennis(player1_points, player2_points), expected_score)    
+
+Lets remove the default Noraml test_cases.
+
+===================================================================================================
+
++-------------------------+
+| Measuring Test Coverage |
++-------------------------+
+
+def score_tennis(player1_points, player2_points):
+    score_names = ['Love', 'Fifteen', 'Thirty', 'Forty']
+    if _end_game(player1_points, player2_points):
+        leader = "Player 2"
+        if player1_points > player2_points:
+            leader = "Player 1"
+        
+        if abs(player1_points - player2_points) == 1:
+            return f"Advantage {leader}"
+        else:
+            return f"Win for {leader}"
+
+    player1_score = score_names[player1_points]
+    if player1_points == player2_points:
+        return f'{player1_score}-All'
+    else:
+        player2_score = score_names[player2_points]
+        return f'{player1_score}-{player2_score}'
+
+def _end_game(player1_points, player2_points):
+    return player1_points > 3 or player2_points > 3
+
+---
+
+from .tennis import score_tennis
+
+import unittest
+
+class TestTennisScore(unittest.TestCase):
+
+    def test_tennis_scores(self):
+        test_cases = [
+            (0, 0, 'Love-All'),
+            (1, 1, 'Fifteen-All'),
+            (2, 2, 'Thirty-All'),
+            (2, 1, 'Thirty-Fifteen'),
+            (3, 1, 'Forty-Fifteen'),
+            (4, 1, 'Win for Player 1'),
+        ]
+        for player1_points, player2_points, expected_score in test_cases:
+            with self.subTest(f'{player1_points}, {player2_points} -> {expected_score}'):
+                self.assertEqual(score_tennis(player1_points, player2_points), expected_score)    
+
+if __name__ == '__main__':
+    unittest.main()
+
+>>> coverage run -m unittest    // will genarate report in hidden folder
+>>> coverage html               // to get html report
+Note:- Can do same with pytest command ith additional argument.
+    pytest --cov-report html:cov_html --cov=tennis .
+                            |                   |
+                            +--> folder name    +---> module to coverage
+
+Add this for 100% coverage:
+    (4, 3, "Advantage Player 1")
+
+>>> pytest --cov-report html:cov_html --cov-branch --cov=tennis .               // to get detail analysis of report
+    check report
+    (4, 5, "Advantage Player 2")
+>>> pytest --cov-report html:cov_html --cov-branch --cov=tennis .
+    check report again
+
+Note:- 100% coverage doesn't gurantee your code is perfect
+
